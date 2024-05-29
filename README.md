@@ -1,1 +1,0 @@
-# NJmahjong-scoring
