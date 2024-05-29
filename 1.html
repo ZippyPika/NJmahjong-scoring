@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻将算分</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        input[type="number"] {
+            width: 50px;
+            margin-right: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>麻将算分小程序</h1>
+        <form id="scoreForm">
+            <div>
+                <label for="player1">玩家1分数：</label>
+                <input type="number" id="player1" name="player1" value="0">
+            </div>
+            <div>
+                <label for="player2">玩家2分数：</label>
+                <input type="number" id="player2" name="player2" value="0">
+            </div>
+            <div>
+                <label for="player3">玩家3分数：</label>
+                <input type="number" id="player3" name="player3" value="0">
+            </div>
+            <div>
+                <label for="player4">玩家4分数：</label>
+                <input type="number" id="player4" name="player4" value="0">
+            </div>
+            <button type="button" onclick="calculateScores()">计算总分</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function calculateScores() {
+            const player1 = parseInt(document.getElementById('player1').value);
+            const player2 = parseInt(document.getElementById('player2').value);
+            const player3 = parseInt(document.getElementById('player3').value);
+            const player4 = parseInt(document.getElementById('player4').value);
+
+            const totalScore = player1 + player2 + player3 + player4;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.innerHTML = `总分数：${totalScore}`;
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, (error) => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
