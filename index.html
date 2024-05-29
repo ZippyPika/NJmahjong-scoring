@@ -8,41 +8,90 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
+            background: white;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        input[type="number"] {
-            width: 50px;
-            margin-right: 10px;
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .player-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .player-input label {
+            flex: 1;
+            font-size: 16px;
+        }
+        .player-input input {
+            flex: 0.5;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
         }
         .result {
             margin-top: 20px;
-            font-size: 1.2em;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <header>
         <h1>麻将算分小程序</h1>
+    </header>
+    <div class="container">
         <form id="scoreForm">
-            <div>
+            <div class="player-input">
                 <label for="player1">玩家1分数：</label>
-                <input type="number" id="player1" name="player1" value="0">
+                <input type="number" id="player1" name="player1" value="0" inputmode="numeric">
             </div>
-            <div>
+            <div class="player-input">
                 <label for="player2">玩家2分数：</label>
-                <input type="number" id="player2" name="player2" value="0">
+                <input type="number" id="player2" name="player2" value="0" inputmode="numeric">
             </div>
-            <div>
+            <div class="player-input">
                 <label for="player3">玩家3分数：</label>
-                <input type="number" id="player3" name="player3" value="0">
+                <input type="number" id="player3" name="player3" value="0" inputmode="numeric">
             </div>
-            <div>
+            <div class="player-input">
                 <label for="player4">玩家4分数：</label>
-                <input type="number" id="player4" name="player4" value="0">
+                <input type="number" id="player4" name="player4" value="0" inputmode="numeric">
             </div>
             <button type="button" onclick="calculateScores()">计算总分</button>
         </form>
@@ -51,10 +100,10 @@
 
     <script>
         function calculateScores() {
-            const player1 = parseInt(document.getElementById('player1').value);
-            const player2 = parseInt(document.getElementById('player2').value);
-            const player3 = parseInt(document.getElementById('player3').value);
-            const player4 = parseInt(document.getElementById('player4').value);
+            const player1 = parseInt(document.getElementById('player1').value) || 0;
+            const player2 = parseInt(document.getElementById('player2').value) || 0;
+            const player3 = parseInt(document.getElementById('player3').value) || 0;
+            const player4 = parseInt(document.getElementById('player4').value) || 0;
 
             const totalScore = player1 + player2 + player3 + player4;
             const resultDiv = document.getElementById('result');
