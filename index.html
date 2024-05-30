@@ -47,7 +47,7 @@
             font-weight: bold;
         }
         .player-input input[type="text"], .player-input input[type="number"] {
-            flex: 0 0 100px;
+            flex: 1;
             padding: 8px;
             font-size: 16px;
             margin-left: 10px;
@@ -92,7 +92,7 @@
             background-color: #4CAF50;
             color: white;
         }
-        .modal {
+        .modal, .result-modal {
             display: none;
             position: fixed;
             z-index: 1;
@@ -103,7 +103,7 @@
             overflow: auto;
             background-color: rgba(0,0,0,0.4);
         }
-        .modal-content {
+        .modal-content, .result-modal-content {
             background-color: white;
             margin: 15% auto;
             padding: 20px;
@@ -135,25 +135,30 @@
         .role-group input, .event-group input {
             margin-right: 10px;
         }
-        .modal-content select, .modal-content input[type="checkbox"] {
+        .modal-content select, .modal-content input[type="checkbox"], .modal-content input[type="number"], .result-modal-content select, .result-modal-content input[type="checkbox"], .result-modal-content input[type="number"] {
             margin-bottom: 10px;
         }
-        .modal-content select {
+        .modal-content select, .result-modal-content select {
             width: 100%;
             padding: 8px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        .modal-content .checkbox-group {
+        .modal-content .checkbox-group, .result-modal-content .checkbox-group {
             display: flex;
             flex-wrap: wrap;
         }
-        .modal-content .checkbox-group label {
+        .modal-content .checkbox-group label, .result-modal-content .checkbox-group label {
             flex: 1 1 45%;
             margin-bottom: 10px;
         }
-
+        .result-modal-content {
+            text-align: center;
+        }
+        #resultMessage {
+            font-size: 20px;
+        }
         @media (max-width: 600px) {
             .player-input label {
                 width: 100%;
@@ -224,6 +229,9 @@
                     <option value="player4">玩家4</option>
                 </select>
             </div>
+            <div class="event-group">
+                <label><input type="checkbox" id="bixiahu" value="0"> 比下胡</label>
+            </div>
             <div class="role-group">
                 <label>基本役:</label>
                 <div class="checkbox-group">
@@ -254,6 +262,7 @@
                     <label>花数：<input type="number" id="huashu" value="0" min="0" style="width: 50px;"></label>
                 </div>
             </div>
+
             <div class="role-group">
                 <label>点炮玩家:</label>
                 <select id="loser">
@@ -264,7 +273,15 @@
                     <option value="zimo">自摸</option>
                 </select>
             </div>
-            <button onclick="recordGame()">记录</button>
+            <button onclick="calculatePoints()">记录</button>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="result-modal">
+        <div class="result-modal-content">
+            <p id="resultMessage"></p>
+            <button onclick="confirmPoints()">确定</button>
         </div>
     </div>
 
@@ -305,9 +322,10 @@
             document.getElementById("myModal").style.display = "none";
         }
 
-        function recordGame() {
+        function calculatePoints() {
             const winner = document.getElementById('winner').value;
             const loser = document.getElementById('loser').value;
+            const isBixiahu = document.getElementById('bixiahu').checked;
 
             const basePoints = Array.from(document.querySelectorAll('.role-group input[type="checkbox"]:checked'))
                 .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
@@ -317,12 +335,66 @@
 
             const incidentalPoints = Array.from(document.querySelectorAll('.event-group input[type="checkbox"]:checked'))
                 .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
+
             const huaShuPoints = parseInt(document.getElementById('huashu').value) * 1;
-            const totalPoints = totalBasePoints + incidentalPoints + huaShuPoints;
+
+            let totalPoints = totalBasePoints + incidentalPoints + huaShuPoints;
+
+            if(isBixiahu) {
+                totalPoints*=2;
+            }
 
             if (winner === loser) {
                 alert("赢家和输家不能是同一个人！");
                 return;
+            }
+
+            let winnerPoints = 0;
+            let actualLoserPayments = { player1: 0, player2: 0, player3: 0, player4: 0 };
+
+            if (loser === "zimo") {
+                const playerIds = ["player1", "player2", "player3", "player4"];
+                playerIds.forEach(playerId => {
+                    if (playerId !== winner) {
+                        const playerScoreElement = document.getElementById(`${playerId}-score`);
+                        let playerPoints = Math.min(parseInt(playerScoreElement.value), totalPoints);
+                        winnerPoints += playerPoints;
+                        actualLoserPayments[playerId] = playerPoints;
+                    }
+                });
+            } else {
+                const loserScoreElement = document.getElementById(`${loser}-score`);
+                let loserPoints = Math.min(parseInt(loserScoreElement.value), totalPoints);
+                winnerPoints = loserPoints;
+                actualLoserPayments[loser] = loserPoints;
+            }
+
+            const resultMessage = `分数: ${totalPoints}`;
+            document.getElementById('resultMessage').textContent = resultMessage;
+
+            document.getElementById("resultModal").style.display = "block";
+        }
+
+        function confirmPoints() {
+            const winner = document.getElementById('winner').value;
+            const loser = document.getElementById('loser').value;
+            const isBixiahu = document.getElementById('bixiahu').checked;
+
+            const basePoints = Array.from(document.querySelectorAll('.role-group input[type="checkbox"]:checked'))
+                .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
+
+            const numChecked = document.querySelectorAll('.role-group input[type="checkbox"]:checked').length;
+            const totalBasePoints = basePoints - 10 * (numChecked - 1);
+
+            const incidentalPoints = Array.from(document.querySelectorAll('.event-group input[type="checkbox"]:checked'))
+                .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
+
+            const huaShuPoints = parseInt(document.getElementById('huashu').value) * 1;
+
+            let totalPoints = totalBasePoints + incidentalPoints + huaShuPoints;
+
+            if (isBixiahu) {
+                totalPoints *= 2;
             }
 
             const winnerScoreElement = document.getElementById(`${winner}-score`);
@@ -363,6 +435,7 @@
             const cell3 = row.insertCell(2);
             const cell4 = row.insertCell(3);
             const cell5 = row.insertCell(4);
+            const cell6 = row.insertCell(5);
 
             cell1.innerHTML = `第${++gameCount}局`;
             if (loser === "zimo") {
@@ -377,6 +450,28 @@
                 cell5.innerHTML = winner === 'player4' ? `+${winnerPoints}` : loser === 'player4' ? `-${actualLoserPayments['player4']}` : '0';
             }
 
+            // 添加删除按钮
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '删除';
+            deleteButton.onclick = function() {
+                // 删除行并返还分数
+                if (loser === "zimo") {
+                    ["player1", "player2", "player3", "player4"].forEach(playerId => {
+                        if (playerId !== winner) {
+                            const playerScoreElement = document.getElementById(`${playerId}-score`);
+                            playerScoreElement.value = parseInt(playerScoreElement.value) + actualLoserPayments[playerId];
+                        }
+                    });
+                } else {
+                    const loserScoreElement = document.getElementById(`${loser}-score`);
+                    loserScoreElement.value = parseInt(loserScoreElement.value) + actualLoserPayments[loser];
+                }
+                winnerScoreElement.value = parseInt(winnerScoreElement.value) - winnerPoints;
+                row.remove();
+            };
+            cell6.appendChild(deleteButton);
+
+            document.getElementById("resultModal").style.display = "none";
             closeModal();
         }
 
