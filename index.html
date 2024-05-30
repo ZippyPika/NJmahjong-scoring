@@ -24,7 +24,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             background: white;
             margin-top: 20px;
             padding: 20px;
@@ -38,16 +38,13 @@
         .player-input {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-        .player-input label {
+        .player-input input[type="text"], .player-input input[type="number"] {
             flex: 1;
-            font-size: 16px;
-        }
-        .player-input input {
-            flex: 0.5;
             padding: 8px;
             font-size: 16px;
+            margin-left: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
@@ -59,6 +56,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 20px;
         }
         button:hover {
             background-color: #45a049;
@@ -69,6 +67,66 @@
             font-weight: bold;
             text-align: center;
         }
+        .game-log {
+            margin-top: 20px;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .role-group, .event-group {
+            margin-bottom: 15px;
+        }
+        .role-group label, .event-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .role-group input, .event-group input {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -76,51 +134,197 @@
         <h1>麻将算分小程序</h1>
     </header>
     <div class="container">
-        <form id="scoreForm">
+        <div id="players">
             <div class="player-input">
-                <label for="player1">玩家1分数：</label>
-                <input type="number" id="player1" name="player1" value="0" inputmode="numeric">
+                <label>玩家1:</label>
+                <input type="text" id="player1-name" value="玩家1" oninput="updateNames()">
+                <input type="number" id="player1-score" value="100">
             </div>
             <div class="player-input">
-                <label for="player2">玩家2分数：</label>
-                <input type="number" id="player2" name="player2" value="0" inputmode="numeric">
+                <label>玩家2:</label>
+                <input type="text" id="player2-name" value="玩家2" oninput="updateNames()">
+                <input type="number" id="player2-score" value="100">
             </div>
             <div class="player-input">
-                <label for="player3">玩家3分数：</label>
-                <input type="number" id="player3" name="player3" value="0" inputmode="numeric">
+                <label>玩家3:</label>
+                <input type="text" id="player3-name" value="玩家3" oninput="updateNames()">
+                <input type="number" id="player3-score" value="100">
             </div>
             <div class="player-input">
-                <label for="player4">玩家4分数：</label>
-                <input type="number" id="player4" name="player4" value="0" inputmode="numeric">
+                <label>玩家4:</label>
+                <input type="text" id="player4-name" value="玩家4" oninput="updateNames()">
+                <input type="number" id="player4-score" value="100">
             </div>
-            <button type="button" onclick="calculateScores()">计算总分</button>
-        </form>
-        <div class="result" id="result"></div>
+        </div>
+        <button onclick="openModal()">新建小局</button>
+        <div class="game-log" id="game-log">
+            <table id="game-table">
+                <thead>
+                    <tr>
+                        <th>局数</th>
+                        <th id="th-player1">玩家1</th>
+                        <th id="th-player2">玩家2</th>
+                        <th id="th-player3">玩家3</th>
+                        <th id="th-player4">玩家4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>新建小局</h2>
+            <div class="role-group">
+                <label>赢家:</label>
+                <select id="winner">
+                    <option value="player1">玩家1</option>
+                    <option value="player2">玩家2</option>
+                    <option value="player3">玩家3</option>
+                    <option value="player4">玩家4</option>
+                </select>
+            </div>
+            <div class="role-group">
+                <label>基本役:</label>
+                <input type="checkbox" id="pinghu" value="10">平胡
+                <input type="checkbox" id="menqing" value="20">门清
+                <input type="checkbox" id="qidu" value="50">七对
+                <input type="checkbox" id="hunyi" value="30">混一色
+                <input type="checkbox" id="qingyi" value="40">清一色
+                <input type="checkbox" id="duidui" value="30">对对胡
+            </div>
+            <div class="role-group">
+                <label>偶然役:</label>
+                <!-- Add more checkboxes here for optional roles -->
+            </div>
+            <div class="role-group">
+                <label>点炮玩家:</label>
+                <select id="loser">
+                    <option value="player1">玩家1</option>
+                    <option value="player2">玩家2</option>
+                    <option value="player3">玩家3</option>
+                    <option value="player4">玩家4</option>
+                    <option value="zimo">自摸</option>
+                </select>
+            </div>
+            <button onclick="recordGame()">记录</button>
+        </div>
     </div>
 
     <script>
-        function calculateScores() {
-            const player1 = parseInt(document.getElementById('player1').value) || 0;
-            const player2 = parseInt(document.getElementById('player2').value) || 0;
-            const player3 = parseInt(document.getElementById('player3').value) || 0;
-            const player4 = parseInt(document.getElementById('player4').value) || 0;
+        let gameCount = 0;
 
-            const totalScore = player1 + player2 + player3 + player4;
-            const resultDiv = document.getElementById('result');
+        function updateNames() {
+            const player1Name = document.getElementById('player1-name').value;
+            const player2Name = document.getElementById('player2-name').value;
+            const player3Name = document.getElementById('player3-name').value;
+            const player4Name = document.getElementById('player4-name').value;
 
-            resultDiv.innerHTML = `总分数：${totalScore}`;
+            document.getElementById('th-player1').textContent = player1Name;
+            document.getElementById('th-player2').textContent = player2Name;
+            document.getElementById('th-player3').textContent = player3Name;
+            document.getElementById('th-player4').textContent = player4Name;
+
+            const winnerSelect = document.getElementById('winner');
+            const loserSelect = document.getElementById('loser');
+
+            winnerSelect.options[0].text = player1Name;
+            winnerSelect.options[1].text = player2Name;
+            winnerSelect.options[2].text = player3Name;
+            winnerSelect.options[3].text = player4Name;
+
+            loserSelect.options[0].text = player1Name;
+            loserSelect.options[1].text = player2Name;
+            loserSelect.options[2].text = player3Name;
+            loserSelect.options[3].text = player4Name;
+            loserSelect.options[4].text = "自摸";
         }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then((registration) => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    }, (error) => {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
+        function openModal() {
+            document.getElementById("myModal").style.display = "block";
         }
+
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+
+        function recordGame() {
+            const winner = document.getElementById('winner').value;
+            const loser = document.getElementById('loser').value;
+
+            const basePoints = Array.from(document.querySelectorAll('.role-group input[type="checkbox"]:checked'))
+                .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
+
+            const numChecked = document.querySelectorAll('.role-group input[type="checkbox"]:checked').length;
+            const totalPoints = basePoints - 10 * (numChecked - 1);
+
+            if (winner === loser) {
+                alert("赢家和输家不能是同一个人！");
+                return;
+            }
+
+            const winnerScoreElement = document.getElementById(`${winner}-score`);
+            let winnerPoints = 0;
+            let actualLoserPayments = { player1: 0, player2: 0, player3: 0, player4: 0 };
+
+            if (loser === "zimo") {
+                const playerIds = ["player1", "player2", "player3", "player4"];
+                playerIds.forEach(playerId => {
+                    if (playerId !== winner) {
+                        const playerScoreElement = document.getElementById(`${playerId}-score`);
+                        let playerPoints = Math.min(parseInt(playerScoreElement.value), totalPoints);
+                        playerScoreElement.value = parseInt(playerScoreElement.value) - playerPoints;
+                        winnerPoints += playerPoints;
+                        actualLoserPayments[playerId] = playerPoints;
+                    }
+                });
+                //winnerPoints *= 3;
+            } else {
+                const loserScoreElement = document.getElementById(`${loser}-score`);
+                let loserPoints = Math.min(parseInt(loserScoreElement.value), totalPoints);
+                loserScoreElement.value = parseInt(loserScoreElement.value) - loserPoints;
+                winnerPoints = loserPoints;
+                actualLoserPayments[loser] = loserPoints;
+            }
+
+            winnerScoreElement.value = parseInt(winnerScoreElement.value) + winnerPoints;
+
+            const player1Name = document.getElementById('player1-name').value;
+            const player2Name = document.getElementById('player2-name').value;
+            const player3Name = document.getElementById('player3-name').value;
+            const player4Name = document.getElementById('player4-name').value;
+
+            const tableBody = document.querySelector('#game-table tbody');
+            const row = tableBody.insertRow();
+
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            const cell4 = row.insertCell(3);
+            const cell5 = row.insertCell(4);
+
+            cell1.innerHTML = `第${++gameCount}局`;
+            if (loser === "zimo") {
+                cell2.innerHTML = winner === 'player1' ? `+${winnerPoints}` : `-${actualLoserPayments['player1']}`;
+                cell3.innerHTML = winner === 'player2' ? `+${winnerPoints}` : `-${actualLoserPayments['player2']}`;
+                cell4.innerHTML = winner === 'player3' ? `+${winnerPoints}` : `-${actualLoserPayments['player3']}`;
+                cell5.innerHTML = winner === 'player4' ? `+${winnerPoints}` : `-${actualLoserPayments['player4']}`;
+            } else {
+                cell2.innerHTML = winner === 'player1' ? `+${winnerPoints}` : loser === 'player1' ? `-${actualLoserPayments['player1']}` : '0';
+                cell3.innerHTML = winner === 'player2' ? `+${winnerPoints}` : loser === 'player2' ? `-${actualLoserPayments['player2']}` : '0';
+                cell4.innerHTML = winner === 'player3' ? `+${winnerPoints}` : loser === 'player3' ? `-${actualLoserPayments['player3']}` : '0';
+                cell5.innerHTML = winner === 'player4' ? `+${winnerPoints}` : loser === 'player4' ? `-${actualLoserPayments['player4']}` : '0';
+            }
+
+            closeModal();
+        }
+
+        // Initialize player names in the modal on load
+        updateNames();
     </script>
 </body>
 </html>
