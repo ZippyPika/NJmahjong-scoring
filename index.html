@@ -235,9 +235,23 @@
                     <label><input type="checkbox" id="duidui" value="30"> 对对胡</label>
                 </div>
             </div>
-            <div class="role-group">
+            <div class="event-group">
                 <label>偶然役:</label>
-                <!-- Add more checkboxes here for optional roles -->
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="huakai" value="10"> 花开</label>
+                    <label><input type="checkbox" id="gangkai" value="20"> 杠开</label>
+                    <label><input type="checkbox" id="yajue" value="20"> 压绝</label>
+                    <label><input type="checkbox" id="angang" value="2"> 暗杠</label>
+                    <label><input type="checkbox" id="queyimen" value="1"> 缺一门</label>
+                    <label><input type="checkbox" id="yadang" value="1"> 丫档</label>
+                    <label><input type="checkbox" id="dandiao" value="1"> 单钓</label>
+                    <label><input type="checkbox" id="minggang" value="1"> 明杠</label>
+                    <label><input type="checkbox" id="fengdui" value="1"> 风对</label>
+                    <label><input type="checkbox" id="fenggang" value="2"> 风杠</label>
+                    <label><input type="checkbox" id="fengangang" value="3"> 风暗杠</label>
+                    <label><input type="checkbox" id="wuhuaguo" value="20"> 无花果</label>
+                    <label><input type="checkbox" id="quanqiududiao" value="30"> 全球独钓</label>
+                </div>
             </div>
             <div class="role-group">
                 <label>点炮玩家:</label>
@@ -298,7 +312,12 @@
                 .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
 
             const numChecked = document.querySelectorAll('.role-group input[type="checkbox"]:checked').length;
-            const totalPoints = basePoints - 10 * (numChecked - 1);
+            const totalBasePoints = basePoints - 10 * (numChecked - 1);
+
+            const incidentalPoints = Array.from(document.querySelectorAll('.event-group input[type="checkbox"]:checked'))
+                .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
+
+            const totalPoints = totalBasePoints + incidentalPoints;
 
             if (winner === loser) {
                 alert("赢家和输家不能是同一个人！");
@@ -320,7 +339,6 @@
                         actualLoserPayments[playerId] = playerPoints;
                     }
                 });
-                winnerPoints *= 3;
             } else {
                 const loserScoreElement = document.getElementById(`${loser}-score`);
                 let loserPoints = Math.min(parseInt(loserScoreElement.value), totalPoints);
