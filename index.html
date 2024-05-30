@@ -251,6 +251,7 @@
                     <label><input type="checkbox" id="fengangang" value="3"> 风暗杠</label>
                     <label><input type="checkbox" id="wuhuaguo" value="20"> 无花果</label>
                     <label><input type="checkbox" id="quanqiududiao" value="30"> 全球独钓</label>
+                    <label>花数：<input type="number" id="huashu" value="0" min="0" style="width: 50px;"></label>
                 </div>
             </div>
             <div class="role-group">
@@ -316,8 +317,8 @@
 
             const incidentalPoints = Array.from(document.querySelectorAll('.event-group input[type="checkbox"]:checked'))
                 .reduce((sum, checkbox) => sum + parseInt(checkbox.value), 0);
-
-            const totalPoints = totalBasePoints + incidentalPoints;
+            const huaShuPoints = parseInt(document.getElementById('huashu').value) * 1;
+            const totalPoints = totalBasePoints + incidentalPoints + huaShuPoints;
 
             if (winner === loser) {
                 alert("赢家和输家不能是同一个人！");
