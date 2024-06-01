@@ -177,27 +177,24 @@
     <div class="container">
         <div id="players">
             <div class="player-input">
-                <!-- <label>玩家1:</label> -->
                 <input type="text" id="player1-name" value="" oninput="updateNames()" placeholder="输入名称">
                 <input type="number" id="player1-score" value="100">
             </div>
             <div class="player-input">
-                <!-- <label>玩家2:</label> -->
                 <input type="text" id="player2-name" value="" oninput="updateNames()" placeholder="输入名称">
                 <input type="number" id="player2-score" value="100">
             </div>
             <div class="player-input">
-                <!-- <label>玩家3:</label> -->
                 <input type="text" id="player3-name" value="" oninput="updateNames()" placeholder="输入名称">
                 <input type="number" id="player3-score" value="100">
             </div>
             <div class="player-input">
-                <!-- <label>玩家4:</label> -->
                 <input type="text" id="player4-name" value="" oninput="updateNames()" placeholder="输入名称"> 
                 <input type="number" id="player4-score" value="100">
             </div>
         </div>
         <button onclick="openModal()">新建小局</button>
+        <button onclick="openGangModal()">杠/跟打</button> <!-- 添加杠/跟打按钮 -->
         <div class="game-log" id="game-log">
             <table id="game-table">
                 <thead>
@@ -207,6 +204,7 @@
                         <th id="th-player2">玩家2</th>
                         <th id="th-player3">玩家3</th>
                         <th id="th-player4">玩家4</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -215,7 +213,7 @@
         </div>
     </div>
 
-    <!-- The Modal -->
+    <!-- 新建小局模态窗口 -->
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -241,6 +239,7 @@
                     <label><input type="checkbox" id="hunyi" value="30"> 混一色</label>
                     <label><input type="checkbox" id="qingyi" value="40"> 清一色</label>
                     <label><input type="checkbox" id="duidui" value="30"> 对对胡</label>
+                    <label><input type="checkbox" id="duidui" value="100"> 双七对</label>
                 </div>
             </div>
             <div class="event-group">
@@ -262,7 +261,6 @@
                     <label>花数：<input type="number" id="huashu" value="0" min="0" style="width: 50px;"></label>
                 </div>
             </div>
-
             <div class="role-group">
                 <label>点炮玩家:</label>
                 <select id="loser">
@@ -274,6 +272,45 @@
                 </select>
             </div>
             <button onclick="calculatePoints()">记录</button>
+        </div>
+    </div>
+
+    <!-- 杠/跟打模态窗口 -->
+    <div id="gangModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeGangModal()">&times;</span>
+            <h2>杠/跟打</h2>
+            <div class="role-group">
+                <label>杠家:</label>
+                <select id="gang-winner">
+                    <option value="player1">玩家1</option>
+                    <option value="player2">玩家2</option>
+                    <option value="player3">玩家3</option>
+                    <option value="player4">玩家4</option>
+                </select>
+            </div>
+            <div class="role-group">
+                <div class="checkbox-group">
+                    <label><input type="radio" name="role" id="huagang" value="10"> 花杠</label>
+                    <label><input type="radio" name="role" id="gang" value="20"> 杠</label>
+                    <label><input type="radio" name="role" id="gangangang" value="20"> 暗杠</label>
+                    <label><input type="radio" name="role" id="genda" value="50"> 跟打</label>
+                </div>
+            </div>
+            <div class="event-group">
+                <label><input type="checkbox" id="gangBixiahu"> 比下胡</label>
+            </div>            
+            <div class="role-group">
+                <label>被杠家:</label>
+                <select id="gang-loser">
+                    <option value="player1">玩家1</option>
+                    <option value="player2">玩家2</option>
+                    <option value="player3">玩家3</option>
+                    <option value="player4">玩家4</option>
+                </select>
+            </div>
+            
+            <button onclick="recordGang()">记录</button>
         </div>
     </div>
 
@@ -301,6 +338,8 @@
 
             const winnerSelect = document.getElementById('winner');
             const loserSelect = document.getElementById('loser');
+            const gangWinnerSelect = document.getElementById('gang-winner');
+            const gangLoserSelect = document.getElementById('gang-loser');
 
             winnerSelect.options[0].text = player1Name;
             winnerSelect.options[1].text = player2Name;
@@ -312,6 +351,16 @@
             loserSelect.options[2].text = player3Name;
             loserSelect.options[3].text = player4Name;
             loserSelect.options[4].text = "自摸";
+
+            gangWinnerSelect.options[0].text = player1Name;
+            gangWinnerSelect.options[1].text = player2Name;
+            gangWinnerSelect.options[2].text = player3Name;
+            gangWinnerSelect.options[3].text = player4Name;
+
+            gangLoserSelect.options[0].text = player1Name;
+            gangLoserSelect.options[1].text = player2Name;
+            gangLoserSelect.options[2].text = player3Name;
+            gangLoserSelect.options[3].text = player4Name;
         }
 
         function openModal() {
@@ -320,6 +369,14 @@
 
         function closeModal() {
             document.getElementById("myModal").style.display = "none";
+        }
+
+        function openGangModal() {
+            document.getElementById("gangModal").style.display = "block";
+        }
+
+        function closeGangModal() {
+            document.getElementById("gangModal").style.display = "none";
         }
 
         function calculatePoints() {
@@ -340,8 +397,8 @@
 
             let totalPoints = totalBasePoints + incidentalPoints + huaShuPoints;
 
-            if(isBixiahu) {
-                totalPoints*=2;
+            if (isBixiahu) {
+                totalPoints *= 2;
             }
 
             if (winner === loser) {
@@ -474,6 +531,95 @@
             document.getElementById("resultModal").style.display = "none";
             closeModal();
         }
+
+        function recordGang() {
+            const gangWinner = document.getElementById('gang-winner').value;
+            const gangLoser = document.getElementById('gang-loser').value;
+            const gangBixiahu = document.getElementById('gangBixiahu').checked;
+
+
+
+            const gangWinnerScoreElement = document.getElementById(`${gangWinner}-score`);
+            const playerIds = ["player1", "player2", "player3", "player4"];
+            let gangPoints = 0;
+
+            if (document.getElementById('huagang').checked) {
+                gangPoints = 10;
+            } else if (document.getElementById('gang').checked) {
+                gangPoints = 10;
+            } else if (document.getElementById('gangangang').checked) {
+                gangPoints = 5;
+            } else if (document.getElementById('genda').checked) {
+                gangPoints = -10;
+            }
+
+            if (gangBixiahu) {
+                gangPoints *= 2;
+            }
+
+            let totalLoserPoints = 0;
+            let actualLoserPayments = { player1: 0, player2: 0, player3: 0, player4: 0 };
+            if(document.getElementById('huagang').checked||document.getElementById('gangangang').checked||document.getElementById('genda').checked){
+                playerIds.forEach(playerId => {
+                    if (playerId !== gangWinner) {
+                        const playerScoreElement = document.getElementById(`${playerId}-score`);
+                        let playerPoints =Math.min(parseInt(playerScoreElement.value),gangPoints)// 每家支付的分数
+                        actualLoserPayments[playerId] = -playerPoints;
+                        playerScoreElement.value = parseInt(playerScoreElement.value) - playerPoints;
+                        totalLoserPoints += playerPoints;
+                    }
+                });
+                gangWinnerScoreElement.value = parseInt(gangWinnerScoreElement.value) + totalLoserPoints;
+            }
+            else {
+                if (gangWinner === gangLoser) {
+                    alert("杠家和被杠家不能是同一个人！");
+                    return;
+                }
+                const loserScoreElement = document.getElementById(`${gangLoser}-score`);
+                let loserPoints = Math.min(parseInt(loserScoreElement.value), gangPoints);
+                loserScoreElement.value = parseInt(loserScoreElement.value) - loserPoints;
+                gangWinnerScoreElement.value = parseInt(gangWinnerScoreElement.value) + loserPoints;
+                totalLoserPoints = loserPoints;
+                actualLoserPayments[gangLoser] = -totalLoserPoints;
+            }
+
+            const tableBody = document.querySelector('#game-table tbody');
+            const row = tableBody.insertRow();
+
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            const cell4 = row.insertCell(3);
+            const cell5 = row.insertCell(4);
+            const cell6 = row.insertCell(5);
+
+            cell1.innerHTML = `杠/跟打`;
+            cell2.innerHTML = gangWinner === 'player1' ? `${totalLoserPoints}` : actualLoserPayments['player1'] ? `${actualLoserPayments['player1']}` : '0';
+            cell3.innerHTML = gangWinner === 'player2' ? `${totalLoserPoints}` : actualLoserPayments['player2'] ? `${actualLoserPayments['player2']}` : '0';
+            cell4.innerHTML = gangWinner === 'player3' ? `${totalLoserPoints}` : actualLoserPayments['player3'] ? `${actualLoserPayments['player3']}` : '0';
+            cell5.innerHTML = gangWinner === 'player4' ? `${totalLoserPoints}` : actualLoserPayments['player4'] ? `${actualLoserPayments['player4']}` : '0';
+
+            // 添加删除按钮
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = '删除';
+            deleteButton.onclick = function() {
+                playerIds.forEach(playerId => {
+                    const playerScoreElement = document.getElementById(`${playerId}-score`);
+                    if (playerId === gangWinner) {
+                        playerScoreElement.value = parseInt(playerScoreElement.value) - totalLoserPoints;
+                    } else {
+                        playerScoreElement.value = parseInt(playerScoreElement.value) - actualLoserPayments[playerId];
+                    }
+                });
+                row.remove();
+            };
+            cell6.appendChild(deleteButton);
+
+            closeGangModal();
+        }
+
+
 
         // Initialize player names in the modal on load
         updateNames();
